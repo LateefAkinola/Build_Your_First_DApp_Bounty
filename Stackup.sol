@@ -21,7 +21,7 @@ contract StackUp {
         uint256 numberOfRewardsLeft; // Add this to track the number of rewards remaining
     }
 
-    // Created to record player rewards
+    // Created to record player's rewards
     struct PlayerRewards {
         uint256 totalEarnings;
         uint256 totalExp;
@@ -33,7 +33,7 @@ contract StackUp {
     mapping(address => mapping(uint256 => PlayerQuestStatus))
         public playerQuestStatuses;
 
-    //  To track player rewards    
+    //  To track player's rewards    
     mapping(address => PlayerRewards) public playerRewards;
 
 
