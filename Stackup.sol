@@ -41,6 +41,7 @@ contract StackUp {
         admin = msg.sender;
     }
 
+    // function for admin to create quest
     function createQuest(
         string calldata title_,
         uint8 reward_,
