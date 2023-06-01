@@ -1,5 +1,5 @@
 # Build_Your_First_DApp_Bounty
-The `StackUp` contract is a smart contract written in Solidity. It provides functionality for managing quests and player interactions within a game.
+The `StackUp` Smart contract is a smart contract written in Solidity. It provides functionality for managing quests and players' interactions.
 -------------------------------------------------------------------------
 #### IMPORTANT ADDITIONS:
   - Ability to call/query the rewards (EARNING & EXP) garnered by a player
