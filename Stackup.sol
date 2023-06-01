@@ -18,7 +18,13 @@ contract StackUp {
         string title;
         uint8 reward;
         uint256 numberOfRewards;
-        uint256 numberOfRewardsLeft; // Add this to track the number of rewards left
+        uint256 numberOfRewardsLeft; // Add this to track the number of rewards remaining
+    }
+
+    // Created to record player rewards
+    struct PlayerRewards {
+        uint256 totalEarnings;
+        uint256 totalExp;
     }
 
     address public admin;
@@ -26,6 +32,10 @@ contract StackUp {
     mapping(uint256 => Quest) public quests;
     mapping(address => mapping(uint256 => PlayerQuestStatus))
         public playerQuestStatuses;
+
+    //  To track player rewards    
+    mapping(address => PlayerRewards) public playerRewards;
+
 
     constructor() {
         admin = msg.sender;
@@ -35,7 +45,7 @@ contract StackUp {
         string calldata title_,
         uint8 reward_,
         uint256 numberOfRewards_
-    ) external onlyAdmin {
+    ) external isAdmin() {
         quests[nextQuestId].questId = nextQuestId;
         quests[nextQuestId].title = title_;
         quests[nextQuestId].reward = reward_;
@@ -51,7 +61,7 @@ contract StackUp {
         string calldata newTitle,
         uint8 newReward,
         uint256 newNumberOfRewards
-    ) external onlyAdmin() questExists(questId) {
+    ) external isAdmin() questExists(questId) {
         Quest storage quest = quests[questId];
         quest.title = newTitle;
         quest.reward = newReward;
@@ -62,52 +72,99 @@ contract StackUp {
     // function for admin to delete quest
     function deleteQuest(uint256 questId)
         external
-        onlyAdmin
+        isAdmin()
         questExists(questId)
     {
         delete quests[questId]; // DELETE!
     }
 
-
-    // function for admin to reward or approve quest an accepted quest submission
+    // function for admin to reward or approve an accepted quest submission
     function acceptQuest(uint256 questId, address player)
         external
-        onlyAdmin
+        isAdmin()
         questExists(questId)
     {
-        // Check if player has submitted the quest
+        // Check if player previously submitted (or submitted, then rejected) the quest for review
         require(
-            playerQuestStatuses[player][questId] == PlayerQuestStatus.SUBMITTED,
-            "Player has not submitted the quest"
+            playerQuestStatuses[player][questId] ==
+            PlayerQuestStatus.SUBMITTED ||
+            playerQuestStatuses[player][questId] ==
+            PlayerQuestStatus.REJECTED,
+            "Player has not submitted quest OR Quest has already been rewarded/approved for the player"
         );
-        // Check if any player has joined the quest
+        // Checks if any player has joined the quest
         require(
             quests[questId].numberOfPlayers > 0,
             "No players joined this quest"
         );
 
-        if (quests[questId].numberOfRewardsLeft > 0) { //  Check if there are remaining rewards
-            playerQuestStatuses[player][questId] = PlayerQuestStatus.REWARDED;  //REWARD!
-            quests[questId].numberOfRewardsLeft--;
-        } else {    //  if no there's no reward remaining, APPROVE!
-            playerQuestStatuses[player][questId] = PlayerQuestStatus.APPROVED;  //APPROVE!
-        }
-    }
+        //  Add 500Exp to Player's totalExp for accepted quest submission (Either Approved/Rewarded)
+        playerRewards[player].totalExp += 500;
 
+        //  Checks if there are remaining rewards, REWARD!
+        if (quests[questId].numberOfRewardsLeft > 0) {
+            //  Add Reward to Player's totalEarning
+            playerRewards[player].totalEarnings += quests[questId].reward;
+            //  Reduce the number of rewards left by 1
+            quests[questId].numberOfRewardsLeft--;
+            //REWARD!
+            playerQuestStatuses[player][questId] = PlayerQuestStatus.REWARDED; 
+        }
+        //  if there's no reward remaining, APPROVE!
+        else {
+            //APPROVE!
+            playerQuestStatuses[player][questId] = PlayerQuestStatus.APPROVED; 
+        }
+        
+    }
 
     // function for admin to reject quest
     function rejectQuest(uint256 questId, address player)
         external
-        onlyAdmin
+        isAdmin()
         questExists(questId)
     {
-        // Check if any player has joined the quest
+        // Checks if any player has joined the quest
         require(
             quests[questId].numberOfPlayers > 0,
             "No players joined this quest"
         );
 
-        playerQuestStatuses[player][questId] = PlayerQuestStatus.REJECTED;  //  REJECT!
+        // Checks if the player has previously submitted the quest for review
+        require(
+            playerQuestStatuses[player][questId] ==
+                PlayerQuestStatus.SUBMITTED ||
+                playerQuestStatuses[player][questId] ==
+                PlayerQuestStatus.APPROVED ||
+                playerQuestStatuses[player][questId] ==
+                PlayerQuestStatus.REWARDED,
+            "Player has not submitted the quest OR Quest has already been rejected for player"
+        );
+
+        //  If quest was previously APPROVED,
+        if (playerQuestStatuses[player][questId] == PlayerQuestStatus.APPROVED) {
+            //  Deduct Exp from Player's totalExp
+            playerRewards[player].totalExp -= 500;
+            //  REJECT!
+            playerQuestStatuses[player][questId] = PlayerQuestStatus.REJECTED; 
+
+        }
+
+        //  If quest was previously REWARDED,
+        else if (playerQuestStatuses[player][questId] == PlayerQuestStatus.REWARDED) {
+            //  Deduct Reward from Player's totalEarnings
+            playerRewards[player].totalEarnings -= quests[questId].reward;
+            //  Deduct Exp from Player's totalExp
+            playerRewards[player].totalExp -= 500;
+            //  Increase the number of rewards left by 1
+            quests[questId].numberOfRewardsLeft++;
+            playerQuestStatuses[player][questId] = PlayerQuestStatus.REJECTED;
+
+        //  If quest was has not been rewarded/approved before but status is SUBMITTED
+        } else {
+            //  REJECT!
+            playerQuestStatuses[player][questId] = PlayerQuestStatus.REJECTED;
+        }
     }
 
     // function to join quest
@@ -121,7 +178,6 @@ contract StackUp {
 
         quests[questId].numberOfPlayers++;
     }
-
 
     // function to submit quest
     function submitQuest(uint256 questId) external questExists(questId) {
@@ -139,7 +195,7 @@ contract StackUp {
         _;
     }
     // modifier to allow only the admin to perform a function
-    modifier onlyAdmin() {
+    modifier isAdmin() {
         require(msg.sender == admin, "Only the admin can perform this action");
         _;
     }
