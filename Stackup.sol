@@ -159,6 +159,7 @@ contract StackUp {
             playerRewards[player].totalExp -= 500;
             //  Increase the number of rewards left by 1
             quests[questId].numberOfRewardsLeft++;
+            //  REJECT!
             playerQuestStatuses[player][questId] = PlayerQuestStatus.REJECTED;
 
         //  If quest was has not been rewarded/approved before but status is SUBMITTED
