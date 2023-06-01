@@ -2,13 +2,13 @@
 The `StackUp` contract is a smart contract written in Solidity. It provides functionality for managing quests and player interactions within a game.
 -------------------------------------------------------------------------
 #### IMPORTANT ADDITIONS:
-- Ability to call/query the rewards garnered by a player
-- Functionality for admin to be able to edit and delete existing quests
+  - Ability to call/query the rewards (EARNING & EXP) garnered by a player
+- Functionalities for admin to be able to edit and delete existing quests
 - Functionalities for admin to accept (REWARD/APPROVE) and reject quest submissions:
-- Functionalities for admin to Re-Review Quest (REJECT/REWARD/APPROVE) and rewards are added/deducted depending on the case
+- Admin's ability to Re-Review Quest (REJECT/REWARD/APPROVE), and rewards are added/deducted depending on the case
 
 #### NOTE: 
-I've seen some cases whereby some players were rewarded twice for a quest by mistake, therefore, it was carefully factored in the code so that admin cannot reward/approve a quest for a player more than once. 
+- I've seen some cases whereby some players were rewarded twice for a quest by mistake, therefore, it was carefully factored in the code so that admin cannot reward/approve a quest for a player more than once. 
 ----------------------------------------------------------------------------
 ## EXPLANATION OF THE CODE:
 
