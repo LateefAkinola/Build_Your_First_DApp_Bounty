@@ -62,5 +62,3 @@ The contract includes two modifiers:
 - `isAdmin`: Checks if the caller is the admin of the contract.
 
 These functions and modifiers provide functionality for the admin to create, edit, and delete quests, as well as reward, approve, and reject quest submissions. Players can join and submit quests, and their rewards and quest statuses are tracked.
-
-
